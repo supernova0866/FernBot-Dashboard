@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.discordId = profile.id as string;
+        token.discordId = (profile as Record<string, unknown>).id as string;
         token.avatar = (profile as Record<string, unknown>).avatar as string;
       }
       return token;
