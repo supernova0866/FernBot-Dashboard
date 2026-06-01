@@ -4,7 +4,7 @@ import { db } from './db';
 
 // Load admins and moderators from configdata.json on the bot side
 // For the dashboard we check against Turso directly isn't possible for configdata
-// so we use env vars to pass admin/mod IDs
+// so we use env vars to pass admin/mod IDs 
 const ADMIN_IDS = (process.env.ADMIN_IDS || '').split(',').filter(Boolean);
 const MOD_IDS = (process.env.MOD_IDS || '').split(',').filter(Boolean);
 
