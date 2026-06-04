@@ -17,22 +17,22 @@ const API = (() => {
 
   // ── STATS ──
   async function getStats() {
-    return request('/api/stats.js');
+    return request('/api/stats');
   }
 
   // ── USER ──
   async function getUser() {
-    return request('/api/user.js');
+    return request('/api/user');
   }
 
   // ── PING / KEEP ALIVE ──
   async function ping() {
-    return request('/api/ping.js', { method: 'POST' });
+    return request('/api/ping', { method: 'POST' });
   }
 
   // ── STAFF: HEAT ──
   async function heatAction(targetId, action, amount) {
-    return request('/api/heat.js', {
+    return request('/api/heat', {
       method: 'POST',
       body: JSON.stringify({ targetId, action, amount }),
     });
@@ -40,7 +40,7 @@ const API = (() => {
 
   // ── STAFF: TIER ──
   async function setTier(targetId, tier) {
-    return request('/api/tier.js', {
+    return request('/api/tier', {
       method: 'POST',
       body: JSON.stringify({ targetId, tier }),
     });
@@ -48,14 +48,14 @@ const API = (() => {
 
   // ── STAFF: BLACKLIST ──
   async function blacklistUser(targetId, reason) {
-    return request('/api/blacklist.js', {
+    return request('/api/blacklist', {
       method: 'POST',
       body: JSON.stringify({ targetId, reason, action: 'add' }),
     });
   }
 
   async function unblacklistUser(targetId) {
-    return request('/api/blacklist.js', {
+    return request('/api/blacklist', {
       method: 'POST',
       body: JSON.stringify({ targetId, action: 'remove' }),
     });
@@ -63,7 +63,7 @@ const API = (() => {
 
   // ── STAFF: ACTION LOGS ──
   async function getLogs(limit = 20) {
-    return request(`/api/logs.js?limit=${limit}`);
+    return request(`/api/logs?limit=${limit}`);
   }
 
   return {
