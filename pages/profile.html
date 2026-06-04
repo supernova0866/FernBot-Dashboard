@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern — Profile</title>
+  <link rel="stylesheet" href="/core/style.css" />
+</head>
+<body>
+  <div id="sidebar-mount"></div>
+  <div id="main-wrap">
+    <main>
+      <div id="page-content" class="page">
+        <!-- Content injected by JS -->
+        <div id="profile-loading" style="padding:80px 40px;text-align:center;color:var(--muted)">
+          Loading...
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/managers/toast.js"></script>
+  <script src="/managers/auth.js"></script>
+  <script src="/managers/api.js"></script>
+  <script src="/managers/keepalive.js"></script>
+  <script src="/core/sidebar.js"></script>
+  <script>
+    const TIER_NAMES = ['Seedling', 'Sprout', 'Fern', 'Forest'];
+    const TIER_PERKS = ['Text only', 'Text · Stickers', 'Text · Stickers · GIFs', 'Text · Stickers · GIFs · Attachments'];
+
+    async function loadProfile() {
+      const session = Auth.getSession();
+      const content = document.getElementById('page-content');
+
+      if (!session) {
+        content.innerHTML = `
+          <div class="gate-screen">
+            <div class="gate-icon">🌿</div>
+            <div class="gate-title">Login to view your profile</div>
+            <div class="gate-sub">Connect your Discord account to see your heat, tier, reputation, and badges.</div>
+            <a href="/api/auth/login" class="btn-discord">
+              <svg width="16" height="13" viewBox="0 0 71 55" fill="none"><path d="M60.1 4.9A58.6 58.6 0 0 0 45.7.7a40 40 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.2 0A39 39 0 0 0 26 .7 58.5 58.5 0 0 0 11.5 5C1.7 19.4-1 33.4.3 47.2a59 59 0 0 0 18 9.1 43.4 43.4 0 0 0 3.8-6.1 38.3 38.3 0 0 1-6-2.9l1.5-1.1a42 42 0 0 0 35.8 0l1.4 1.1a38.4 38.4 0 0 1-6 2.9 43.2 43.2 0 0 0 3.8 6.1 58.8 58.8 0 0 0 18-9.1C72 31.1 68.2 17.2 60.1 5ZM23.7 38.8c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.4 3.2 6.4 7.2c0 4-2.9 7.2-6.4 7.2Z" fill="white"/></svg>
+              Login with Discord
+            </a>
+          </div>`;
+        return;
+      }
+
+      let user;
+      try {
+        user = await API.getUser();
+      } catch {
+        content.innerHTML = `<div class="gate-screen"><div class="gate-icon">😕</div><div class="gate-title">User not found</div><div class="gate-sub">Your account isn't in the Fern database yet. Try using the bot first!</div></div>`;
+        return;
+      }
+
+      const avatarSrc = session.avatar
+        ? `https://cdn.discordapp.com/avatars/${session.discordId}/${session.avatar}.png?size=160`
+        : null;
+
+      const badgesHtml = user.badges?.length
+        ? user.badges.map(b => `<span class="badge-pill">${b}</span>`).join('')
+        : `<span style="font-size:13px;color:var(--muted)">No badges yet</span>`;
+
+      const repDisplay = user.reputation >= 0 ? `+${user.reputation}` : user.reputation;
+
+      content.innerHTML = `
+        <div style="margin-bottom:32px">
+          <div class="page-eyebrow">Your account</div>
+          <h1 class="page-title"><em>Profile</em></h1>
+        </div>
+
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start">
+
+          <!-- Left -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Main card -->
+            <div class="card card-strong" style="padding:28px;text-align:center">
+              <div style="width:76px;height:76px;border-radius:50%;
+                background:var(--mint-pale);border:3px solid var(--border-strong);
+                display:flex;align-items:center;justify-content:center;
+                font-size:34px;margin:0 auto 14px;overflow:hidden">
+                ${avatarSrc ? `<img src="${avatarSrc}" style="width:76px;height:76px;border-radius:50%;object-fit:cover">` : '🌿'}
+              </div>
+              <div style="font-family:'Grandstander',cursive;font-size:22px;font-weight:800;
+                color:var(--text);margin-bottom:3px">${user.username}</div>
+              <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:16px">Fern User</div>
+              <div style="display:inline-flex;align-items:center;gap:10px;
+                background:var(--yellow);border:2px solid rgba(253,230,138,0.5);
+                border-radius:14px;padding:10px 16px">
+                <div style="font-family:'Grandstander',cursive;font-size:28px;
+                  font-weight:800;color:#92400e;line-height:1">${user.tier}</div>
+                <div>
+                  <div style="font-size:13px;font-weight:800;color:var(--text);text-align:left">
+                    Tier ${user.tier} — ${TIER_NAMES[user.tier]}
+                  </div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:1px;text-align:left">
+                    ${TIER_PERKS[user.tier]}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat pills -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="border-radius:18px;padding:16px 12px;text-align:center;
+                background:var(--peach);border:2px solid var(--peach2)">
+                <span style="font-family:'Grandstander',cursive;font-size:34px;font-weight:800;
+                  display:block;line-height:1;margin-bottom:3px;color:#e05a2b">${user.heat}</span>
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;
+                  letter-spacing:0.07em;color:var(--soft)">Heat</span>
+              </div>
+              <div style="border-radius:18px;padding:16px 12px;text-align:center;
+                background:var(--mint-pale);border:2px solid var(--border-strong)">
+                <span style="font-family:'Grandstander',cursive;font-size:34px;font-weight:800;
+                  display:block;line-height:1;margin-bottom:3px;color:var(--mint2)">${repDisplay}</span>
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;
+                  letter-spacing:0.07em;color:var(--soft)">Rep</span>
+              </div>
+              <div style="border-radius:18px;padding:16px 12px;text-align:center;
+                background:var(--sky);border:2px solid rgba(120,180,255,0.3)">
+                <span style="font-family:'Grandstander',cursive;font-size:34px;font-weight:800;
+                  display:block;line-height:1;margin-bottom:3px;color:#2563eb">${user.msgsent}</span>
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;
+                  letter-spacing:0.07em;color:var(--soft)">Messages</span>
+              </div>
+              <div style="border-radius:18px;padding:16px 12px;text-align:center;
+                background:var(--yellow);border:2px solid rgba(253,230,138,0.5)">
+                <span style="font-family:'Grandstander',cursive;font-size:34px;font-weight:800;
+                  display:block;line-height:1;margin-bottom:3px;color:#92400e">${user.tier}</span>
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;
+                  letter-spacing:0.07em;color:var(--soft)">Tier</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right -->
+          <div style="display:flex;flex-direction:column;gap:16px">
+
+            <!-- Heat card -->
+            <div class="card" style="padding:24px">
+              <div class="section-label">Heat Level <div class="section-label-line"></div></div>
+              <div style="display:flex;justify-content:space-between;
+                font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px">
+                <span>Current heat</span>
+                <span>${user.heat} / 100</span>
+              </div>
+              <div class="heat-bar-track">
+                <div class="heat-bar-fill" style="width:${Math.min(user.heat, 100)}%"></div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-top:8px;font-weight:600">
+                Heat above 100 blocks you from calls. Decays 1 point every 30 minutes automatically.
+              </div>
+            </div>
+
+            <!-- Badges card -->
+            <div class="card" style="padding:24px">
+              <div class="section-label">Badges <div class="section-label-line"></div></div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">${badgesHtml}</div>
+            </div>
+
+          </div>
+        </div>`;
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

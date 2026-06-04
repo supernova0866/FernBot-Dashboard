@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern — Dashboard</title>
+  <link rel="stylesheet" href="/core/style.css" />
+</head>
+<body>
+  <div id="sidebar-mount"></div>
+  <div id="main-wrap">
+    <main>
+      <div id="page-content" class="page">
+
+        <div style="margin-bottom:32px">
+          <div class="page-eyebrow">Dashboard</div>
+          <h1 class="page-title">Welcome back <em>🌿</em></h1>
+          <p class="page-sub">Here is a quick look at what Fern is up to.</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start">
+
+          <!-- Left col -->
+          <div style="display:flex;flex-direction:column;gap:18px">
+
+            <!-- Stat pills -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+              <div class="stat-pill" style="background:var(--mint-pale);border-color:var(--border-strong)">
+                <span class="stat-num" style="color:var(--mint2)" id="stat-servers">...</span>
+                <span class="stat-label">Servers</span>
+              </div>
+              <div class="stat-pill" style="background:var(--sky);border-color:rgba(120,180,255,0.3)">
+                <span class="stat-num" style="color:#2563eb" id="stat-calls">...</span>
+                <span class="stat-label">Active Calls</span>
+              </div>
+              <div class="stat-pill" style="background:var(--lav);border-color:rgba(180,160,255,0.3)">
+                <span class="stat-num" style="color:#7c3aed" id="stat-users">...</span>
+                <span class="stat-label">Users</span>
+              </div>
+            </div>
+
+            <!-- Login CTA (shown only when logged out) -->
+            <div id="login-cta" style="display:none;
+              background:linear-gradient(135deg,var(--mint-pale),var(--card));
+              border:2px solid var(--border-strong);border-radius:22px;
+              padding:28px;text-align:center">
+              <div style="font-size:40px;margin-bottom:12px">🔐</div>
+              <div style="font-family:'Grandstander',cursive;font-size:20px;font-weight:800;color:var(--text);margin-bottom:7px">
+                See your profile
+              </div>
+              <div style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:18px">
+                Log in with Discord to view your heat, tier, reputation, and badges.
+              </div>
+              <a href="/api/auth/login" class="btn-discord">
+                <svg width="16" height="13" viewBox="0 0 71 55" fill="none"><path d="M60.1 4.9A58.6 58.6 0 0 0 45.7.7a40 40 0 0 0-1.8 3.7 54.2 54.2 0 0 0-16.2 0A39 39 0 0 0 26 .7 58.5 58.5 0 0 0 11.5 5C1.7 19.4-1 33.4.3 47.2a59 59 0 0 0 18 9.1 43.4 43.4 0 0 0 3.8-6.1 38.3 38.3 0 0 1-6-2.9l1.5-1.1a42 42 0 0 0 35.8 0l1.4 1.1a38.4 38.4 0 0 1-6 2.9 43.2 43.2 0 0 0 3.8 6.1 58.8 58.8 0 0 0 18-9.1C72 31.1 68.2 17.2 60.1 5ZM23.7 38.8c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.5 3.2 6.4 7.2c0 4-2.8 7.2-6.4 7.2Zm23.6 0c-3.5 0-6.4-3.2-6.4-7.2s2.8-7.2 6.4-7.2 6.4 3.2 6.4 7.2c0 4-2.9 7.2-6.4 7.2Z" fill="white"/></svg>
+                Login with Discord
+              </a>
+            </div>
+
+          </div>
+
+          <!-- Keep Alive card -->
+          <div class="card card-strong" style="overflow:hidden;box-shadow:var(--shadow)">
+            <div style="background:var(--mint-pale);padding:14px 20px;
+              display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:11px;font-weight:800;text-transform:uppercase;
+                letter-spacing:0.08em;color:var(--mint2)">Keep Fern alive</span>
+              <span style="display:flex;align-items:center;gap:5px;font-size:11px;
+                font-weight:800;color:var(--mint2)">
+                <span class="pulse-dot"></span> Online
+              </span>
+            </div>
+
+            <div style="padding:28px 20px 10px;text-align:center">
+              <div id="home-timer" style="font-family:'Grandstander',cursive;font-size:88px;
+                font-weight:800;line-height:1;color:var(--text);letter-spacing:-0.04em;transition:color 0.4s">
+                15:00
+              </div>
+              <div style="font-size:11px;font-weight:700;color:var(--soft);
+                text-transform:uppercase;letter-spacing:0.08em;margin-top:4px">
+                minutes until sleep
+              </div>
+            </div>
+
+            <div style="height:5px;background:rgba(78,204,163,0.12);margin:0 20px 18px">
+              <div id="home-bar" style="height:100%;width:100%;
+                background:linear-gradient(90deg,var(--mint),var(--mint2));
+                border-radius:999px;transition:width 1s linear"></div>
+            </div>
+
+            <button id="home-wake" style="display:block;width:calc(100% - 40px);
+              margin:0 20px 20px;background:linear-gradient(135deg,var(--mint),var(--mint2));
+              border:none;border-radius:16px;padding:17px;
+              font-family:'Grandstander',cursive;font-size:20px;font-weight:800;
+              color:white;cursor:pointer;transition:all 0.22s;
+              box-shadow:0 4px 16px rgba(78,204,163,0.28)">
+              🌿 Wake up Fern
+            </button>
+
+            <div style="background:var(--mint-pale);padding:12px 20px;
+              font-size:12px;color:var(--soft);font-weight:700;
+              display:flex;justify-content:space-between">
+              <span>Woken <b id="bump-count" style="color:var(--mint2)">0</b>x today</span>
+              <span>last: <b id="bump-last" style="color:var(--mint2)">never</b></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/managers/toast.js"></script>
+  <script src="/managers/auth.js"></script>
+  <script src="/managers/api.js"></script>
+  <script src="/managers/keepalive.js"></script>
+  <script src="/core/sidebar.js"></script>
+  <script>
+    const TOTAL = 15 * 60 * 1000;
+    let deadline = Date.now() + TOTAL;
+    let bumps = 0;
+
+    // Sync home-specific timer with KeepAlive
+    setInterval(() => {
+      const left = Math.max(0, deadline - Date.now());
+      const m = Math.floor(left / 60000);
+      const s = Math.floor((left % 60000) / 1000);
+      const str = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const pct = (left / TOTAL) * 100;
+
+      const timerEl = document.getElementById('home-timer');
+      const barEl   = document.getElementById('home-bar');
+      if (timerEl) {
+        timerEl.textContent = str;
+        timerEl.style.color = left === 0 ? '#ef4444' : left < 180000 ? '#f59e0b' : 'var(--text)';
+      }
+      if (barEl) barEl.style.width = `${pct}%`;
+    }, 1000);
+
+    document.getElementById('home-wake')?.addEventListener('click', async () => {
+      deadline = Date.now() + TOTAL;
+      bumps++;
+      document.getElementById('bump-count').textContent = bumps;
+      document.getElementById('bump-last').textContent = 'just now';
+      const btn = document.getElementById('home-wake');
+      btn.textContent = '✅ Awake!';
+      setTimeout(() => { btn.textContent = '🌿 Wake up Fern'; }, 2200);
+      await KeepAlive.ping();
+    });
+
+    // Load stats
+    API.getStats().then(s => {
+      document.getElementById('stat-servers').textContent = s.registeredServers ?? '—';
+      document.getElementById('stat-calls').textContent   = s.activeCalls ?? '—';
+      document.getElementById('stat-users').textContent   = s.totalUsers ?? '—';
+    }).catch(() => {
+      ['stat-servers','stat-calls','stat-users'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+      });
+    });
+
+    // Show login CTA if not logged in
+    const session = Auth.getSession();
+    if (!session) document.getElementById('login-cta').style.display = 'block';
+  </script>
+</body>
+</html>

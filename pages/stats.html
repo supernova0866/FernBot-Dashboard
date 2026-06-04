@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern — Bot Stats</title>
+  <link rel="stylesheet" href="/core/style.css" />
+</head>
+<body>
+  <div id="sidebar-mount"></div>
+  <div id="main-wrap">
+    <main>
+      <div id="page-content" class="page">
+
+        <div style="margin-bottom:32px">
+          <div class="page-eyebrow">Public</div>
+          <h1 class="page-title">Bot <em>Stats</em></h1>
+          <p class="page-sub">Live snapshot — no login needed.</p>
+        </div>
+
+        <!-- 4 big stat pills -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+          <div class="stat-pill" style="background:var(--mint-pale);border-color:var(--border-strong)">
+            <span class="stat-num" style="color:var(--mint2)" id="s-servers">...</span>
+            <span class="stat-label">Servers</span>
+          </div>
+          <div class="stat-pill" style="background:var(--sky);border-color:rgba(120,180,255,0.3)">
+            <span class="stat-num" style="color:#2563eb" id="s-calls">...</span>
+            <span class="stat-label">Active Calls</span>
+          </div>
+          <div class="stat-pill" style="background:var(--lav);border-color:rgba(180,160,255,0.3)">
+            <span class="stat-num" style="color:#7c3aed" id="s-users">...</span>
+            <span class="stat-label">Total Users</span>
+          </div>
+          <div class="stat-pill" style="background:var(--yellow);border-color:rgba(253,230,138,0.5)">
+            <span class="stat-num" style="color:#92400e" id="s-msgs">...</span>
+            <span class="stat-label">Msgs Relayed</span>
+          </div>
+        </div>
+
+        <!-- Extra row -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:32px">
+          <div class="stat-pill" style="background:var(--peach);border-color:var(--peach2)">
+            <span class="stat-num" style="color:#e05a2b" id="s-totalcalls">...</span>
+            <span class="stat-label">Total Calls</span>
+          </div>
+          <div class="stat-pill" style="background:var(--card);border-color:var(--border-strong)">
+            <span class="stat-num" style="color:var(--mint2)" id="s-uptime">🟢</span>
+            <span class="stat-label">Bot Status</span>
+          </div>
+        </div>
+
+        <!-- Info note -->
+        <div style="background:var(--mint-pale);border:1.5px solid var(--border-strong);
+          border-radius:18px;padding:16px 20px;font-size:13px;color:var(--muted);
+          display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px">📡</span>
+          Stats refresh every 30 seconds automatically. All data is fetched live from the database.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/managers/toast.js"></script>
+  <script src="/managers/auth.js"></script>
+  <script src="/managers/api.js"></script>
+  <script src="/managers/keepalive.js"></script>
+  <script src="/core/sidebar.js"></script>
+  <script>
+    async function loadStats() {
+      try {
+        const s = await API.getStats();
+        document.getElementById('s-servers').textContent    = s.registeredServers ?? '—';
+        document.getElementById('s-calls').textContent      = s.activeCalls ?? '—';
+        document.getElementById('s-users').textContent      = s.totalUsers ?? '—';
+        document.getElementById('s-msgs').textContent       = s.totalMessages ?? '—';
+        document.getElementById('s-totalcalls').textContent = s.totalCalls ?? '—';
+      } catch {
+        ['s-servers','s-calls','s-users','s-msgs','s-totalcalls'].forEach(id => {
+          document.getElementById(id).textContent = '—';
+        });
+      }
+    }
+
+    loadStats();
+    setInterval(loadStats, 30000);
+  </script>
+</body>
+</html>

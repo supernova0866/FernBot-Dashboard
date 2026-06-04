@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern — Staff Panel</title>
+  <link rel="stylesheet" href="/core/style.css" />
+</head>
+<body>
+  <div id="sidebar-mount"></div>
+  <div id="main-wrap">
+    <main>
+      <div id="page-content" class="page">
+        <!-- JS renders this -->
+      </div>
+    </main>
+  </div>
+
+  <script src="/managers/toast.js"></script>
+  <script src="/managers/auth.js"></script>
+  <script src="/managers/api.js"></script>
+  <script src="/managers/keepalive.js"></script>
+  <script src="/core/sidebar.js"></script>
+  <script>
+    // Action log stored in memory (could wire to API.getLogs() later)
+    const actionLog = [];
+
+    function pushLog(icon, text, by) {
+      actionLog.unshift({ icon, text, by, time: 'just now' });
+      if (actionLog.length > 20) actionLog.pop();
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const el = document.getElementById('action-log');
+      if (!el) return;
+      if (!actionLog.length) {
+        el.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:12px 0">No actions yet this session.</div>`;
+        return;
+      }
+      el.innerHTML = actionLog.slice(0, 8).map((l, i) => `
+        <div class="log-row" style="${i < actionLog.length - 1 ? 'border-bottom:1px solid var(--border)' : ''}">
+          <div class="log-icon">${l.icon}</div>
+          <div>
+            <div class="log-text">${l.text}</div>
+            <div class="log-sub">${l.by}</div>
+          </div>
+          <span class="log-time">${l.time}</span>
+        </div>`).join('');
+    }
+
+    function renderStaffPanel(session) {
+      const content = document.getElementById('page-content');
+      const isAdmin = session.isAdmin;
+
+      content.innerHTML = `
+        <div style="margin-bottom:32px">
+          <div class="page-eyebrow">Staff only ⚔️</div>
+          <h1 class="page-title">Staff <em>Panel</em></h1>
+          <p class="page-sub">Moderation tools. Handle with care.</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+          <!-- Left col: tools -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Heat Management -->
+            <div>
+              <div class="section-label">Heat Management <div class="section-label-line"></div></div>
+              <div class="card card-peach" style="padding:24px">
+                <div style="display:flex;gap:10px;margin-bottom:12px">
+                  <input id="heat-uid" class="input" placeholder="User ID" style="flex:1" />
+                  <input id="heat-amt" class="input" type="number" placeholder="Amt" min="1" max="500"
+                    style="width:90px;text-align:center" />
+                </div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-peach" style="flex:1" onclick="heatAction('add')">+ Add Heat</button>
+                  <button class="btn btn-ghost" style="flex:1" onclick="heatAction('remove')">− Remove</button>
+                  <button class="btn btn-sky" style="flex:1" onclick="heatAction('check')">Check</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tier Management (admin only) -->
+            ${isAdmin ? `
+            <div id="tier-section">
+              <div class="section-label">Tier Management <div class="section-label-line"></div></div>
+              <div class="card card-yellow" style="padding:24px">
+                <input id="tier-uid" class="input" placeholder="User ID" style="margin-bottom:12px" />
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px" id="tier-btns">
+                  ${[0,1,2,3].map(t => `
+                    <button onclick="selectTier(${t})" id="tier-btn-${t}"
+                      class="btn" style="font-family:'Grandstander',cursive;font-size:18px;
+                      font-weight:800;padding:12px;background:var(--input-bg);
+                      border:1.5px solid var(--border);color:var(--text)">${t}</button>
+                  `).join('')}
+                </div>
+                <button class="btn btn-yellow" style="width:100%;padding:13px;font-size:14px"
+                  onclick="setTierAction()">Set Tier</button>
+              </div>
+            </div>` : ''}
+
+            <!-- Blacklist (admin only) -->
+            ${isAdmin ? `
+            <div>
+              <div class="section-label">Blacklist <div class="section-label-line"></div></div>
+              <div class="card" style="padding:24px;border-color:var(--red-border)">
+                <input id="bl-uid" class="input" placeholder="User ID" style="margin-bottom:10px" />
+                <input id="bl-reason" class="input" placeholder="Reason (optional)" style="margin-bottom:12px" />
+                <div style="display:flex;gap:8px">
+                  <button class="btn" style="flex:1;background:var(--red-pale);
+                    color:#c0392b;border:1.5px solid var(--red-border)"
+                    onclick="blacklistAction('add')">🚫 Blacklist</button>
+                  <button class="btn btn-ghost" style="flex:1"
+                    onclick="blacklistAction('remove')">✅ Unblacklist</button>
+                </div>
+              </div>
+            </div>` : ''}
+
+          </div>
+
+          <!-- Right col: action log -->
+          <div>
+            <div class="section-label">Recent Actions <div class="section-label-line"></div></div>
+            <div class="card" style="padding:16px 20px">
+              <div id="action-log">
+                <div style="font-size:13px;color:var(--muted);padding:12px 0">No actions yet this session.</div>
+              </div>
+            </div>
+
+            <!-- Staff badge -->
+            <div style="margin-top:16px;background:var(--mint-pale);
+              border:1.5px solid var(--border-strong);border-radius:18px;
+              padding:16px 20px;display:flex;align-items:center;gap:12px">
+              <div style="font-size:28px">${isAdmin ? '👑' : '⚔️'}</div>
+              <div>
+                <div style="font-size:14px;font-weight:800;color:var(--text)">
+                  ${isAdmin ? 'Administrator' : 'Moderator'}
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">
+                  ${isAdmin ? 'Full access — heat, tiers, blacklist' : 'Heat management access'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>`;
+
+      renderLogs();
+    }
+
+    // ── ACTIONS ──
+    let selectedTier = null;
+
+    function selectTier(t) {
+      selectedTier = t;
+      [0,1,2,3].forEach(n => {
+        const btn = document.getElementById(`tier-btn-${n}`);
+        if (!btn) return;
+        if (n === t) {
+          btn.style.background = 'var(--yellow)';
+          btn.style.borderColor = 'rgba(253,230,138,0.7)';
+          btn.style.color = '#92400e';
+        } else {
+          btn.style.background = 'var(--input-bg)';
+          btn.style.borderColor = 'var(--border)';
+          btn.style.color = 'var(--text)';
+        }
+      });
+    }
+
+    async function heatAction(action) {
+      const uid = document.getElementById('heat-uid')?.value?.trim();
+      const amt = document.getElementById('heat-amt')?.value?.trim();
+
+      if (!uid) { Toast.error('Enter a user ID'); return; }
+      if (action !== 'check' && !amt) { Toast.error('Enter an amount'); return; }
+
+      try {
+        const data = await API.heatAction(uid, action, amt);
+        if (action === 'check') {
+          Toast.success(`${uid} has ${data.heat} heat`);
+          pushLog('🌡️', `Checked heat: ${data.heat} — ${uid}`, `by ${Auth.getSession()?.username}`);
+        } else {
+          Toast.success(`${action === 'add' ? 'Added' : 'Removed'} ${amt} heat → new: ${data.newHeat}`);
+          pushLog(action === 'add' ? '🔥' : '❄️',
+            `${action === 'add' ? 'Added' : 'Removed'} ${amt} heat — ${uid}`,
+            `by ${Auth.getSession()?.username}`);
+        }
+      } catch (e) {
+        Toast.error(e.message || 'Failed');
+      }
+    }
+
+    async function setTierAction() {
+      const uid = document.getElementById('tier-uid')?.value?.trim();
+      if (!uid) { Toast.error('Enter a user ID'); return; }
+      if (selectedTier === null) { Toast.error('Select a tier'); return; }
+
+      try {
+        await API.setTier(uid, selectedTier);
+        Toast.success(`Set ${uid} to Tier ${selectedTier}`);
+        pushLog('🏅', `Set Tier ${selectedTier} — ${uid}`, `by ${Auth.getSession()?.username}`);
+        document.getElementById('tier-uid').value = '';
+        selectTier(-1);
+        selectedTier = null;
+      } catch (e) {
+        Toast.error(e.message || 'Failed');
+      }
+    }
+
+    async function blacklistAction(action) {
+      const uid = document.getElementById('bl-uid')?.value?.trim();
+      const reason = document.getElementById('bl-reason')?.value?.trim();
+      if (!uid) { Toast.error('Enter a user ID'); return; }
+
+      try {
+        if (action === 'add') {
+          await API.blacklistUser(uid, reason);
+          Toast.success(`Blacklisted ${uid}`);
+          pushLog('🚫', `Blacklisted ${uid}${reason ? ` — ${reason}` : ''}`, `by ${Auth.getSession()?.username}`);
+        } else {
+          await API.unblacklistUser(uid);
+          Toast.success(`Unblacklisted ${uid}`);
+          pushLog('✅', `Unblacklisted ${uid}`, `by ${Auth.getSession()?.username}`);
+        }
+        document.getElementById('bl-uid').value = '';
+        document.getElementById('bl-reason').value = '';
+      } catch (e) {
+        Toast.error(e.message || 'Failed');
+      }
+    }
+
+    // ── INIT ──
+    Auth.requireStaff(renderStaffPanel);
+  </script>
+</body>
+</html>
