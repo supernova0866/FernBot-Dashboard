@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fern — Logging in...</title>
+  <link rel="stylesheet" href="/core/style.css" />
+</head>
+<body>
+  <div style="padding:80px 40px;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🌿</div>
+    <div style="font-family:'Grandstander',cursive;font-size:24px;font-weight:800;color:var(--text)">
+      Logging you in...
+    </div>
+  </div>
+
+  <script src="/managers/toast.js"></script>
+  <script src="/managers/auth.js"></script>
+  <script>
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+
+      if (!code) {
+        window.location.href = '/pages/home.html';
+        return;
+      }
+
+      try {
+        await Auth.handleCallback(code, state);
+        window.location.href = '/pages/home.html';
+      } catch (e) {
+        console.error(e);
+        window.location.href = '/pages/home.html';
+      }
+    })();
+  </script>
+</body>
+</html>
