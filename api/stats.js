@@ -11,26 +11,25 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
   try {
-    const [users, activeCalls, totalCalls, msgs, guilds] = await Promise.all([
-      db.execute('SELECT COUNT(*) as count FROM users'),
+    const [activeCalls, totalCalls, msgs, users] = await Promise.all([
       db.execute("SELECT COUNT(*) as count FROM calls WHERE status = 'active'"),
       db.execute('SELECT COUNT(*) as count FROM calls'),
       db.execute('SELECT SUM(msgsent) as total FROM users'),
-      db.execute('SELECT guild1_id, guild2_id FROM calls'),
+      db.execute('SELECT COUNT(*) as count FROM users'),
     ]);
 
-    const guildSet = new Set();
-    for (const row of guilds.rows) {
-      if (row.guild1_id) guildSet.add(row.guild1_id);
-      if (row.guild2_id) guildSet.add(row.guild2_id);
-    }
+    const botRes = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+      headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` },
+    });
+    const botGuilds = await botRes.json();
+    const serverCount = Array.isArray(botGuilds) ? botGuilds.length : 0;
 
     return res.status(200).json({
       totalUsers:        users.rows[0].count,
       activeCalls:       activeCalls.rows[0].count,
       totalCalls:        totalCalls.rows[0].count,
       totalMessages:     msgs.rows[0].total || 0,
-      registeredServers: guildSet.size,
+      registeredServers: serverCount,
     });
   } catch (err) {
     console.error('Stats error:', err);
