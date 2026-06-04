@@ -3,7 +3,7 @@
 const Auth = (() => {
   const CONFIG_URL = 'https://raw.githubusercontent.com/supernova0866/FernBot/main/configdata.json';
   const DISCORD_API = 'https://discord.com/api/v10';
-  const CLIENT_ID = window.ENV_DISCORD_CLIENT_ID || '';
+  const CLIENT_ID = '1091624039287635988';
   const REDIRECT_URI = encodeURIComponent(window.location.origin + '/pages/callback.html');
 
   // ── SESSION ──
