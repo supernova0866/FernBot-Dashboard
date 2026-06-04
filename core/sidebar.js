@@ -65,7 +65,7 @@ function buildUserCard(session) {
 
 function buildAuthButton(session) {
   if (!session) {
-    return `<a href="/api/auth/login" class="btn-login">${DISCORD_ICON} Login with Discord</a>`;
+    return `<a href="#" onclick="Auth.login()" class="btn-login">${DISCORD_ICON} Login with Discord</a>`;
   }
   return `<button class="btn-logout" onclick="Auth.logout()">Sign out</button>`;
 }
